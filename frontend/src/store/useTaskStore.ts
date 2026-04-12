@@ -1,7 +1,6 @@
 import { create } from 'zustand';
+import { api } from '../utils/api';
 import { Task, FilterStatus, FilterPriority } from '../types';
-import { mockTasks } from '../utils/mockData';
-import { generateId } from '../utils/helpers';
 
 interface TaskFilters {
   status: FilterStatus;
@@ -12,11 +11,15 @@ interface TaskFilters {
 interface TaskStore {
   tasks: Task[];
   filters: TaskFilters;
+  isLoading: boolean;
 
-  // CRUD
-  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
-  updateTask: (id: string, updates: Partial<Task>) => void;
-  deleteTask: (id: string) => void;
+  // Data
+  hydrate: () => Promise<void>;
+
+  // CRUD (optimistic)
+  addTask: (task: Omit<Task, 'id' | 'createdAt'>) => Promise<void>;
+  updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
   toggleStatus: (id: string) => void;
 
   // Filters
@@ -29,43 +32,59 @@ interface TaskStore {
   getFilteredTasks: () => Task[];
 }
 
-const defaultFilters: TaskFilters = {
-  status: 'all',
-  priority: 'all',
-  search: '',
-};
+const defaultFilters: TaskFilters = { status: 'all', priority: 'all', search: '' };
+
+const nextStatus = (s: Task['status']): Task['status'] =>
+  s === 'todo' ? 'in-progress' : s === 'in-progress' ? 'done' : 'todo';
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
-  tasks: mockTasks,
+  tasks: [],
   filters: defaultFilters,
+  isLoading: false,
 
-  addTask: (task) =>
-    set((state) => ({
-      tasks: [
-        ...state.tasks,
-        { ...task, id: generateId(), createdAt: new Date().toISOString().split('T')[0] },
-      ],
-    })),
+  hydrate: async () => {
+    set({ isLoading: true });
+    try {
+      const tasks = await api.get<Task[]>('/tasks');
+      set({ tasks, isLoading: false });
+    } catch {
+      set({ isLoading: false });
+    }
+  },
 
-  updateTask: (id, updates) =>
+  addTask: async (task) => {
+    const saved = await api.post<Task>('/tasks', task);
+    set((state) => ({ tasks: [saved, ...state.tasks] }));
+  },
+
+  updateTask: async (id, updates) => {
+    const prev = get().tasks;
     set((state) => ({
       tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-    })),
+    }));
+    try {
+      await api.put(`/tasks/${id}`, updates);
+    } catch {
+      set({ tasks: prev });
+    }
+  },
 
-  deleteTask: (id) =>
-    set((state) => ({
-      tasks: state.tasks.filter((t) => t.id !== id),
-    })),
+  deleteTask: async (id) => {
+    const prev = get().tasks;
+    set((state) => ({ tasks: state.tasks.filter((t) => t.id !== id) }));
+    try {
+      await api.del(`/tasks/${id}`);
+    } catch {
+      set({ tasks: prev });
+    }
+  },
 
-  toggleStatus: (id) =>
-    set((state) => ({
-      tasks: state.tasks.map((t) => {
-        if (t.id !== id) return t;
-        const next: Task['status'] =
-          t.status === 'todo' ? 'in-progress' : t.status === 'in-progress' ? 'done' : 'todo';
-        return { ...t, status: next };
-      }),
-    })),
+  toggleStatus: (id) => {
+    const task = get().tasks.find((t) => t.id === id);
+    if (!task) return;
+    const status = nextStatus(task.status);
+    get().updateTask(id, { status });
+  },
 
   setFilterStatus: (status) =>
     set((state) => ({ filters: { ...state.filters, status } })),
@@ -83,7 +102,8 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     return tasks.filter((t) => {
       if (filters.status !== 'all' && t.status !== filters.status) return false;
       if (filters.priority !== 'all' && t.priority !== filters.priority) return false;
-      if (filters.search && !t.title.toLowerCase().includes(filters.search.toLowerCase())) return false;
+      if (filters.search && !t.title.toLowerCase().includes(filters.search.toLowerCase()))
+        return false;
       return true;
     });
   },

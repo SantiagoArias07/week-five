@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore';
 import {
   LayoutDashboard,
   BookOpen,
@@ -24,6 +25,10 @@ const bottomItems = [
 ];
 
 export default function Sidebar() {
+  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const initials = user?.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) ?? 'WF';
+
   return (
     <aside className="w-60 h-full bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
       {/* Brand */}
@@ -94,12 +99,15 @@ export default function Sidebar() {
         ))}
 
         {/* User Profile */}
-        <div className="flex items-center gap-3 px-3 py-2 mt-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+        <div
+          onClick={() => navigate('/settings')}
+          className="flex items-center gap-3 px-3 py-2 mt-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+        >
           <div className="w-7 h-7 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-semibold text-indigo-700">SA</span>
+            <span className="text-xs font-semibold text-indigo-700">{initials}</span>
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-medium text-gray-800 truncate">Santiago Arias</p>
+            <p className="text-xs font-medium text-gray-800 truncate">{user?.name ?? 'Student'}</p>
             <p className="text-xs text-gray-400 truncate">Student</p>
           </div>
         </div>

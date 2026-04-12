@@ -28,5 +28,28 @@ export interface Exam {
   room: string;
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  body: string;
+  type: 'info' | 'warning' | 'exam';
+  read: boolean;
+  createdAt: string;
+}
+
+export interface UserSettings {
+  darkMode: boolean;
+  language: string;
+  pushNotifications: boolean;
+  emailReminders: boolean;
+  soundEffects: boolean;
+}
+
+export interface AuthUser {
+  id: number;
+  name: string;
+  email: string;
+}
+
 export type FilterStatus = 'all' | 'todo' | 'in-progress' | 'done';
 export type FilterPriority = 'all' | 'low' | 'medium' | 'high';

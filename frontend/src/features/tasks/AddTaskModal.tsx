@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useTaskStore } from '../../store/useTaskStore';
-import { mockSubjects } from '../../utils/mockData';
+import { useSubjectStore } from '../../store/useSubjectStore';
 import { Task } from '../../types';
 
 interface AddTaskModalProps {
@@ -12,7 +12,7 @@ interface AddTaskModalProps {
 const emptyForm = {
   title: '',
   description: '',
-  subject: mockSubjects[0].name,
+  subject: '',
   priority: 'medium' as Task['priority'],
   dueDate: '',
 };
@@ -20,13 +20,16 @@ const emptyForm = {
 export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
   const [form, setForm] = useState(emptyForm);
   const { addTask } = useTaskStore();
+  const subjects = useSubjectStore((s) => s.subjects);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const firstSubject = subjects[0]?.name ?? '';
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.title.trim() || !form.dueDate) return;
-    addTask({ ...form, status: 'todo' });
+    await addTask({ ...form, subject: form.subject || firstSubject, status: 'todo' });
     setForm(emptyForm);
     onClose();
   };
@@ -96,7 +99,7 @@ export default function AddTaskModal({ isOpen, onClose }: AddTaskModalProps) {
                 onChange={handleChange}
                 className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-300 transition-all cursor-pointer"
               >
-                {mockSubjects.map((s) => (
+                {subjects.map((s) => (
                   <option key={s.id} value={s.name}>
                     {s.name}
                   </option>
