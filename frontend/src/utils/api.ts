@@ -14,8 +14,21 @@ async function handleResponse<T>(res: Response): Promise<T> {
     window.location.replace('/login');
     throw new Error('Unauthorized');
   }
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.message ?? 'Request failed');
+
+  let data: unknown;
+  try {
+    data = await res.json();
+  } catch {
+    // Non-JSON response (proxy error, AirPlay on port 5000, etc.)
+    if (!res.ok) {
+      throw new Error(
+        `Cannot reach server (HTTP ${res.status}). Make sure the backend is running: cd backend && npm run dev`
+      );
+    }
+    throw new Error('Invalid response from server');
+  }
+
+  if (!res.ok) throw new Error((data as { message?: string }).message ?? 'Request failed');
   return data as T;
 }
 

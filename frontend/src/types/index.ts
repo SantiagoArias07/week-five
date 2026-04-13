@@ -51,5 +51,14 @@ export interface AuthUser {
   email: string;
 }
 
+export interface SubjectNote {
+  id: string;
+  subjectId: string;
+  content: string;
+  category: 'general' | 'teacher' | 'tips' | 'resources';
+  pinned: boolean;
+  createdAt: string;
+}
+
 export type FilterStatus = 'all' | 'todo' | 'in-progress' | 'done';
 export type FilterPriority = 'all' | 'low' | 'medium' | 'high';

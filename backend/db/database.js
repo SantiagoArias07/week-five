@@ -84,6 +84,18 @@ db.exec(`
     created_at TEXT    DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS subject_notes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL,
+    subject_id INTEGER NOT NULL,
+    content    TEXT    NOT NULL,
+    category   TEXT    DEFAULT 'general',
+    pinned     INTEGER DEFAULT 0,
+    created_at TEXT    DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+  );
 `);
 
 module.exports = db;

@@ -5,6 +5,7 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import Subjects from '../pages/Subjects';
+import SubjectDetail from '../pages/SubjectDetail';
 import Tasks from '../pages/Tasks';
 import Planner from '../pages/Planner';
 import Exams from '../pages/Exams';
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Dashboard /> },
       { path: 'subjects', element: <Subjects /> },
+      { path: 'subjects/:id', element: <SubjectDetail /> },
       { path: 'tasks', element: <Tasks /> },
       { path: 'planner', element: <Planner /> },
       { path: 'exams', element: <Exams /> },

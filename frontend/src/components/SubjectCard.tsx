@@ -1,4 +1,5 @@
-import { BookOpen, User, Hash } from 'lucide-react';
+import { BookOpen, User, Hash, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Subject } from '../types';
 
 interface SubjectCardProps {
@@ -6,8 +7,12 @@ interface SubjectCardProps {
 }
 
 export default function SubjectCard({ subject }: SubjectCardProps) {
+  const navigate = useNavigate();
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+    <div
+      className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group"
+      onClick={() => navigate(`/subjects/${subject.id}`)}
+    >
       {/* Color stripe + icon */}
       <div className="flex items-start justify-between mb-4">
         <div
@@ -39,7 +44,7 @@ export default function SubjectCard({ subject }: SubjectCardProps) {
           <Hash size={13} />
           <span>{subject.taskCount} tasks</span>
         </div>
-        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: subject.color }} />
+        <ArrowRight size={14} className="text-gray-300 group-hover:text-indigo-500 transition-colors" />
       </div>
     </div>
   );

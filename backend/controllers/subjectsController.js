@@ -33,10 +33,22 @@ const create = (req, res) => {
   res.status(201).json(fmt(row));
 };
 
+const getOne = (req, res) => {
+  const row = db.prepare(`
+    SELECT s.*, COUNT(t.id) as taskCount
+    FROM subjects s
+    LEFT JOIN tasks t ON t.subject = s.name AND t.user_id = s.user_id
+    WHERE s.id = ? AND s.user_id = ?
+    GROUP BY s.id
+  `).get(req.params.id, req.user.id);
+  if (!row) return res.status(404).json({ message: 'Subject not found' });
+  res.json(fmt(row));
+};
+
 const remove = (req, res) => {
   const { changes } = db.prepare('DELETE FROM subjects WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
   if (!changes) return res.status(404).json({ message: 'Subject not found' });
   res.json({ message: 'Subject deleted' });
 };
 
-module.exports = { list, create, remove };
+module.exports = { list, getOne, create, remove };
