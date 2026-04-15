@@ -32,9 +32,18 @@ export interface Notification {
   id: string;
   title: string;
   body: string;
-  type: 'info' | 'warning' | 'exam';
+  type: 'info' | 'warning' | 'exam' | 'task';
   read: boolean;
   createdAt: string;
+}
+
+export interface PlannerEvent {
+  id: string;
+  title: string;
+  date: string;  // YYYY-MM-DD — one-time specific date
+  hour: number;  // 7–21
+  duration: number;
+  color: string;
 }
 
 export interface UserSettings {

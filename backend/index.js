@@ -17,6 +17,7 @@ app.use('/api/subjects',      require('./routes/subjects'));
 app.use('/api/exams',         require('./routes/exams'));
 app.use('/api/settings',      require('./routes/settings'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/planner',       require('./routes/planner'));
 app.use('/api/search',        require('./routes/search'));
 
 // Health check

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Bell } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import { useNotificationStore } from '../store/useNotificationStore';
+import { useT } from '../hooks/useT';
 import NotificationsDropdown from './NotificationsDropdown';
 import SearchDropdown from './SearchDropdown';
 
@@ -21,6 +22,7 @@ export default function TopBar() {
   const notifications = useNotificationStore((s) => s.notifications);
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  const t = useT();
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -29,10 +31,10 @@ export default function TopBar() {
   const initials = user ? getInitials(user.name) : 'WF';
 
   return (
-    <header className="h-14 bg-white border-b border-gray-200 px-6 flex items-center justify-between flex-shrink-0">
+    <header className="h-14 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 flex items-center justify-between flex-shrink-0 transition-colors duration-200">
       {/* Search */}
       <div ref={searchRef} className="relative">
-        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
         <input
           type="text"
           value={searchQuery}
@@ -43,8 +45,8 @@ export default function TopBar() {
           onFocus={() => {
             if (searchQuery.length >= 2) setShowSearch(true);
           }}
-          placeholder="Search tasks, subjects, exams..."
-          className="pl-9 pr-4 py-1.5 text-sm bg-gray-100 rounded-lg border-0 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white transition-all w-64 text-gray-700 placeholder:text-gray-400"
+          placeholder={t('nav_search_placeholder')}
+          className="pl-9 pr-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 rounded-lg border-0 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:bg-white dark:focus:bg-gray-600 transition-all w-64 text-gray-700 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-500"
         />
         {showSearch && searchQuery.length >= 2 && (
           <SearchDropdown
@@ -66,7 +68,7 @@ export default function TopBar() {
               setShowNotifications((v) => !v);
               setShowSearch(false);
             }}
-            className="relative p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+            className="relative p-1.5 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           >
             <Bell size={18} />
             {unreadCount > 0 && (
@@ -83,10 +85,10 @@ export default function TopBar() {
         {/* Avatar → Settings */}
         <button
           onClick={() => navigate('/settings')}
-          className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center hover:bg-indigo-200 transition-colors"
+          className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-colors"
           title="Go to Settings"
         >
-          <span className="text-xs font-semibold text-indigo-700">{initials}</span>
+          <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300">{initials}</span>
         </button>
       </div>
     </header>

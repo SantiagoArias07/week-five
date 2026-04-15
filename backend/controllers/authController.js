@@ -81,7 +81,6 @@ const register = (req, res) => {
   ).run(name.trim(), email.toLowerCase().trim(), hash);
 
   db.prepare('INSERT INTO user_settings (user_id) VALUES (?)').run(userId);
-  seedUserData(userId, name.trim());
 
   const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(userId);
   res.status(201).json({ token: signToken(userId, user.email), user: formatUser(user) });

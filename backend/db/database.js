@@ -98,4 +98,9 @@ db.exec(`
   );
 `);
 
+// Safe migrations — add columns that may not exist yet
+try { db.exec("ALTER TABLE notifications ADD COLUMN source_type TEXT DEFAULT ''"); } catch {}
+try { db.exec("ALTER TABLE notifications ADD COLUMN source_id   TEXT DEFAULT ''"); } catch {}
+try { db.exec("ALTER TABLE planner_events ADD COLUMN date TEXT DEFAULT ''"); } catch {}
+
 module.exports = db;
