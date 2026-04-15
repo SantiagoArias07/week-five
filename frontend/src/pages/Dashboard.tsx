@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckSquare, BookOpen, ClipboardList, TrendingUp,
-  Plus, Calendar, AlertCircle, ArrowRight, Zap,
+  Plus, Calendar, AlertCircle, ArrowRight, Zap, MapPin,
 } from 'lucide-react';
 import { useTaskStore } from '../store/useTaskStore';
 import { useSubjectStore } from '../store/useSubjectStore';
@@ -147,6 +147,12 @@ export default function Dashboard() {
       })
       .slice(0, 4);
   }, [tasks]);
+
+  const nextExam = useMemo(() => {
+    const upcoming = exams.filter((e) => e.date && daysUntil(e.date) >= 0);
+    if (!upcoming.length) return null;
+    return [...upcoming].sort((a, b) => daysUntil(a.date) - daysUntil(b.date))[0];
+  }, [exams]);
 
   const dateLabel = today.toLocaleDateString(language === 'es' ? 'es-MX' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -379,6 +385,77 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+          {/* Next Exam Countdown */}
+          <div
+            className="rounded-2xl border border-gray-100 dark:border-gray-700 p-5 overflow-hidden"
+            style={nextExam ? { borderColor: `${nextExam.subjectColor}40` } : undefined}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold text-gray-900 dark:text-white">{t('dash_next_exam')}</h2>
+              <button
+                onClick={() => navigate('/exams')}
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium flex items-center gap-1"
+              >
+                {t('nav_exams')} <ArrowRight size={12} />
+              </button>
+            </div>
+
+            {!nextExam ? (
+              <div className="text-center py-4">
+                <ClipboardList size={24} className="text-gray-200 dark:text-gray-700 mx-auto mb-2" />
+                <p className="text-sm text-gray-400 dark:text-gray-500">{t('dash_no_exams_yet')}</p>
+              </div>
+            ) : (() => {
+              const days = daysUntil(nextExam.date);
+              return (
+                <div className="flex items-start gap-4">
+                  <div className="flex-1 min-w-0">
+                    <span
+                      className="inline-block text-xs font-medium px-2 py-0.5 rounded-full mb-2"
+                      style={{ backgroundColor: `${nextExam.subjectColor}20`, color: nextExam.subjectColor }}
+                    >
+                      {nextExam.subject}
+                    </span>
+                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-1">{nextExam.title}</p>
+                    {nextExam.room && (
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mb-2 flex items-center gap-1">
+                        <MapPin size={11} /> {nextExam.room}
+                      </p>
+                    )}
+                    {nextExam.topics.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {nextExam.topics.slice(0, 3).map((topic) => (
+                          <span
+                            key={topic}
+                            className="text-xs px-1.5 py-0.5 rounded"
+                            style={{ backgroundColor: `${nextExam.subjectColor}18`, color: nextExam.subjectColor }}
+                          >
+                            {topic}
+                          </span>
+                        ))}
+                        {nextExam.topics.length > 3 && (
+                          <span className="text-xs text-gray-400 dark:text-gray-500">+{nextExam.topics.length - 3}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-center flex-shrink-0">
+                    <div
+                      className="w-16 h-16 rounded-xl flex flex-col items-center justify-center"
+                      style={{ backgroundColor: `${nextExam.subjectColor}18` }}
+                    >
+                      <span className="text-2xl font-bold leading-none" style={{ color: nextExam.subjectColor }}>
+                        {days === 0 ? '!' : days}
+                      </span>
+                      <span className="text-[10px] font-medium mt-0.5 leading-tight text-center px-1" style={{ color: nextExam.subjectColor }}>
+                        {days === 0 ? t('dash_exam_today') : t('dash_days_left')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
         </div>
 
         {/* Right column (narrower) */}
@@ -433,7 +510,7 @@ export default function Dashboard() {
 
           {/* Quick Stats */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
-            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">Quick Stats</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-4">{t('dash_quick_stats')}</h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -480,7 +557,7 @@ export default function Dashboard() {
 
           {/* Quick Actions */}
           <div className="bg-gradient-to-br from-indigo-50 to-violet-50 dark:from-indigo-900/30 dark:to-violet-900/30 rounded-2xl border border-indigo-100 dark:border-indigo-800/40 p-5">
-            <h2 className="font-semibold text-gray-900 dark:text-white mb-3">Quick Actions</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-white mb-3">{t('dash_quick_actions')}</h2>
             <div className="space-y-2">
               {[
                 { label: t('nav_tasks'), path: '/tasks', color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/40' },

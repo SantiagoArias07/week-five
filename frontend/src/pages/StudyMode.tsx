@@ -164,9 +164,8 @@ export default function StudyMode() {
           {Array.from({ length: 8 }).map((_, i) => (
             <div
               key={i}
-              className="flex-1 h-2 rounded-full transition-all"
+              className={`flex-1 h-2 rounded-full transition-all ${i >= sessions ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
               style={i < sessions ? { backgroundColor: accentColor } : undefined}
-              {...(i >= sessions ? { className: 'flex-1 h-2 rounded-full bg-gray-100 dark:bg-gray-700' } : {})}
             />
           ))}
         </div>

@@ -42,6 +42,12 @@ const en = {
   dash_add_task: 'Add Task',
   dash_view_planner: 'Planner',
   dash_credits: 'credits',
+  dash_quick_stats: 'Quick Stats',
+  dash_quick_actions: 'Quick Actions',
+  dash_next_exam: 'Next Exam',
+  dash_no_exams_yet: 'No exams scheduled',
+  dash_days_left: 'days left',
+  dash_exam_today: 'Today!',
 
   // Planner
   planner_title: 'Planner',
@@ -108,11 +114,23 @@ const en = {
   exams_no_exams: 'No upcoming exams',
   exams_topics: 'Topics',
   exams_room: 'Room',
+  exams_add: 'Add Exam',
+  exams_subject_label: 'Subject',
+  exams_date_label: 'Date',
+  exams_title_input: 'Exam Title',
+  exams_topics_hint: 'Topics (comma-separated)',
+  exams_scheduled: 'exams scheduled this semester',
+  exams_heads_up: 'Heads up!',
+  exams_alert_body: 'coming up soon. Start reviewing!',
 
   // Subjects
   subjects_title: 'Subjects',
   subjects_add: 'Add Subject',
   subjects_no_subjects: 'No subjects yet',
+  subjects_name: 'Subject Name',
+  subjects_teacher: 'Teacher',
+  subjects_credits: 'Credits',
+  subjects_color: 'Color',
 
   // Settings
   settings_title: 'Settings',
@@ -231,6 +249,12 @@ const es: typeof en = {
   dash_add_task: 'Agregar Tarea',
   dash_view_planner: 'Planificador',
   dash_credits: 'créditos',
+  dash_quick_stats: 'Estadísticas',
+  dash_quick_actions: 'Acciones Rápidas',
+  dash_next_exam: 'Próximo Examen',
+  dash_no_exams_yet: 'Sin exámenes programados',
+  dash_days_left: 'días restantes',
+  dash_exam_today: '¡Hoy!',
 
   // Planner
   planner_title: 'Planificador',
@@ -297,11 +321,23 @@ const es: typeof en = {
   exams_no_exams: 'Sin exámenes próximos',
   exams_topics: 'Temas',
   exams_room: 'Salón',
+  exams_add: 'Agregar Examen',
+  exams_subject_label: 'Materia',
+  exams_date_label: 'Fecha',
+  exams_title_input: 'Título del Examen',
+  exams_topics_hint: 'Temas (separados por coma)',
+  exams_scheduled: 'exámenes programados este semestre',
+  exams_heads_up: '¡Atención!',
+  exams_alert_body: 'próximo(s). ¡Empieza a repasar!',
 
   // Subjects
   subjects_title: 'Materias',
   subjects_add: 'Agregar Materia',
   subjects_no_subjects: 'Sin materias aún',
+  subjects_name: 'Nombre de Materia',
+  subjects_teacher: 'Docente',
+  subjects_credits: 'Créditos',
+  subjects_color: 'Color',
 
   // Settings
   settings_title: 'Configuración',
