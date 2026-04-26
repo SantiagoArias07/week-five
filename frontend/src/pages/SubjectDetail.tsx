@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, BookOpen, User, Hash, Pin, Trash2, Plus, Pencil,
   CheckSquare, Calendar, Lightbulb, Link2, GraduationCap, Check, X,
+  ExternalLink,
 } from 'lucide-react';
 import { api } from '../utils/api';
 import { useSubjectStore } from '../store/useSubjectStore';
@@ -10,7 +11,7 @@ import { useTaskStore } from '../store/useTaskStore';
 import { useExamStore } from '../store/useExamStore';
 import { Subject, SubjectNote, Task, Exam } from '../types';
 
-type Tab = 'overview' | 'notes' | 'teacher' | 'tips';
+type Tab = 'overview' | 'notes' | 'teacher' | 'tips' | 'resources';
 type NoteCategory = 'general' | 'teacher' | 'tips' | 'resources';
 
 const CATEGORY_META: Record<NoteCategory, { label: string; icon: React.ReactNode; color: string }> = {
@@ -136,10 +137,11 @@ export default function SubjectDetail() {
   if (!subject) return null;
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
-    { key: 'overview', label: 'Overview',   icon: <BookOpen size={14} /> },
-    { key: 'notes',    label: 'Notes',      icon: <Pencil size={14} />   },
-    { key: 'teacher',  label: 'Teacher',    icon: <GraduationCap size={14} /> },
-    { key: 'tips',     label: 'Exam Tips',  icon: <Lightbulb size={14} /> },
+    { key: 'overview',   label: 'Overview',   icon: <BookOpen size={14} /> },
+    { key: 'notes',      label: 'Notes',      icon: <Pencil size={14} />   },
+    { key: 'teacher',    label: 'Teacher',    icon: <GraduationCap size={14} /> },
+    { key: 'tips',       label: 'Exam Tips',  icon: <Lightbulb size={14} /> },
+    { key: 'resources',  label: 'Resources',  icon: <Link2 size={14} /> },
   ];
 
   return (
@@ -268,6 +270,26 @@ export default function SubjectDetail() {
           onStartAdd={() => { setAddingCategory('tips'); setNewContent(''); }}
           onCancelAdd={() => setAddingCategory(null)}
           onAdd={() => handleAddNote('tips')}
+          onNewContentChange={setNewContent}
+          onStartEdit={(n) => { setEditingId(n.id); setEditContent(n.content); }}
+          onCancelEdit={() => setEditingId(null)}
+          onSaveEdit={handleSaveEdit}
+          onEditContentChange={setEditContent}
+          onPin={handleTogglePin}
+          onDelete={handleDelete}
+        />
+      )}
+      {activeTab === 'resources' && (
+        <ResourcesTab
+          notes={notesByCategory('resources')}
+          addingCategory={addingCategory}
+          newContent={newContent}
+          editingId={editingId}
+          editContent={editContent}
+          textareaRef={textareaRef}
+          onStartAdd={() => { setAddingCategory('resources'); setNewContent(''); }}
+          onCancelAdd={() => setAddingCategory(null)}
+          onAdd={() => handleAddNote('resources')}
           onNewContentChange={setNewContent}
           onStartEdit={(n) => { setEditingId(n.id); setEditContent(n.content); }}
           onCancelEdit={() => setEditingId(null)}
@@ -517,6 +539,243 @@ function NotesTab({
               onDelete={onDelete}
             />
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Resources Tab ───────────────────────────────────────────────────────────
+
+const URL_RE = /https?:\/\/[^\s]+/;
+
+function extractUrl(content: string): string | null {
+  const m = content.match(URL_RE);
+  return m ? m[0] : null;
+}
+
+function extractTitle(content: string): string {
+  return content.replace(URL_RE, '').replace(/\n+/g, ' ').trim() || content;
+}
+
+interface ResourcesTabProps {
+  notes: SubjectNote[];
+  addingCategory: NoteCategory | null;
+  newContent: string;
+  editingId: string | null;
+  editContent: string;
+  textareaRef: React.RefObject<HTMLTextAreaElement>;
+  onStartAdd: () => void;
+  onCancelAdd: () => void;
+  onAdd: () => void;
+  onNewContentChange: (v: string) => void;
+  onStartEdit: (n: SubjectNote) => void;
+  onCancelEdit: () => void;
+  onSaveEdit: (n: SubjectNote) => void;
+  onEditContentChange: (v: string) => void;
+  onPin: (n: SubjectNote) => void;
+  onDelete: (id: string) => void;
+}
+
+function ResourcesTab({
+  notes, addingCategory, newContent, editingId, editContent,
+  textareaRef, onStartAdd, onCancelAdd, onAdd, onNewContentChange,
+  onStartEdit, onCancelEdit, onSaveEdit, onEditContentChange, onPin, onDelete,
+}: ResourcesTabProps) {
+  const isAdding = addingCategory === 'resources';
+
+  return (
+    <div>
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white">Resources &amp; Links</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            Links, notes, and materials for this subject
+          </p>
+        </div>
+        {!isAdding && (
+          <button
+            onClick={onStartAdd}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+          >
+            <Plus size={14} />
+            Add Resource
+          </button>
+        )}
+      </div>
+
+      {/* Add form */}
+      {isAdding && (
+        <div className="rounded-xl border-2 border-emerald-200 dark:border-emerald-800/50 bg-white dark:bg-gray-800 p-4 mb-4">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+            Paste a URL, write a note, or combine both (title on first line, URL on second)
+          </p>
+          <textarea
+            ref={textareaRef}
+            value={newContent}
+            onChange={(e) => onNewContentChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) onAdd();
+              if (e.key === 'Escape') onCancelAdd();
+            }}
+            placeholder={'e.g. https://textbook.com/chapter1\nor\nTextbook Chapter 1\nhttps://textbook.com/chapter1'}
+            rows={3}
+            className="w-full text-sm text-gray-800 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 outline-none resize-none mb-3 bg-transparent"
+          />
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              onClick={onCancelAdd}
+              className="px-3 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onAdd}
+              disabled={!newContent.trim()}
+              className="flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-40 transition-colors"
+            >
+              <Check size={13} />
+              Save
+            </button>
+          </div>
+        </div>
+      )}
+
+      {notes.length === 0 && !isAdding ? (
+        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 p-10 text-center">
+          <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl flex items-center justify-center mx-auto mb-3">
+            <Link2 size={18} className="text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-1">Resources &amp; Links</p>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">Links, notes, and materials for this subject</p>
+          <button
+            onClick={onStartAdd}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition-colors"
+          >
+            <Plus size={14} />
+            Add your first resource
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {notes.map((note) => {
+            const url = extractUrl(note.content);
+            const title = url ? extractTitle(note.content) : '';
+            const isEditing = editingId === note.id;
+
+            return (
+              <div
+                key={note.id}
+                className={`bg-white dark:bg-gray-800 rounded-xl border ${note.pinned ? 'border-emerald-200 dark:border-emerald-800/50' : 'border-gray-200 dark:border-gray-700'} p-4 group`}
+              >
+                {note.pinned && (
+                  <div className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-2">
+                    <Pin size={11} />
+                    Pinned
+                  </div>
+                )}
+
+                {isEditing ? (
+                  <>
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => onEditContentChange(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) onSaveEdit(note);
+                        if (e.key === 'Escape') onCancelEdit();
+                      }}
+                      rows={3}
+                      className="w-full text-sm text-gray-800 dark:text-gray-200 outline-none resize-none mb-3 bg-transparent"
+                      autoFocus
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={onCancelEdit} className="flex items-center gap-1 px-2.5 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                        <X size={12} /> Cancel
+                      </button>
+                      <button
+                        onClick={() => onSaveEdit(note)}
+                        className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+                      >
+                        <Check size={12} /> Save
+                      </button>
+                    </div>
+                  </>
+                ) : url ? (
+                  <div className="flex items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      {title && (
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-1">{title}</p>
+                      )}
+                      <p className="text-xs text-indigo-600 dark:text-indigo-400 truncate">{url}</p>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                      >
+                        <ExternalLink size={11} />
+                        Open
+                      </a>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => onPin(note)}
+                          title={note.pinned ? 'Unpin' : 'Pin'}
+                          className={`p-1.5 rounded-lg transition-colors ${note.pinned ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                        >
+                          <Pin size={13} />
+                        </button>
+                        <button
+                          onClick={() => onStartEdit(note)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          onClick={() => onDelete(note.id)}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-3">
+                    <p className="flex-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                      {note.content}
+                    </p>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      <button
+                        onClick={() => onPin(note)}
+                        title={note.pinned ? 'Unpin' : 'Pin'}
+                        className={`p-1.5 rounded-lg transition-colors ${note.pinned ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'}`}
+                      >
+                        <Pin size={13} />
+                      </button>
+                      <button
+                        onClick={() => onStartEdit(note)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <Pencil size={13} />
+                      </button>
+                      <button
+                        onClick={() => onDelete(note.id)}
+                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                  {new Date(note.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                </p>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

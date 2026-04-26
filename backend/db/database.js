@@ -96,11 +96,37 @@ db.exec(`
     FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE,
     FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
   );
+
+  CREATE TABLE IF NOT EXISTS grades (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL,
+    subject    TEXT    NOT NULL,
+    title      TEXT    NOT NULL,
+    score      REAL    NOT NULL,
+    max_score  REAL    NOT NULL DEFAULT 100,
+    weight_pct REAL    DEFAULT 0,
+    type       TEXT    DEFAULT 'exam',
+    date       TEXT    DEFAULT '',
+    notes      TEXT    DEFAULT '',
+    created_at TEXT    DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
+
+  CREATE TABLE IF NOT EXISTS study_sessions (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL,
+    subject    TEXT    DEFAULT '',
+    duration   INTEGER NOT NULL DEFAULT 25,
+    date       TEXT    NOT NULL,
+    created_at TEXT    DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  );
 `);
 
 // Safe migrations — add columns that may not exist yet
 try { db.exec("ALTER TABLE notifications ADD COLUMN source_type TEXT DEFAULT ''"); } catch {}
 try { db.exec("ALTER TABLE notifications ADD COLUMN source_id   TEXT DEFAULT ''"); } catch {}
 try { db.exec("ALTER TABLE planner_events ADD COLUMN date TEXT DEFAULT ''"); } catch {}
+try { db.exec("ALTER TABLE exams ADD COLUMN weight_pct REAL DEFAULT 0"); } catch {}
 
 module.exports = db;

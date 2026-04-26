@@ -10,6 +10,7 @@ import {
   Brain,
   Settings,
   GraduationCap,
+  Trophy,
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -25,6 +26,7 @@ export default function Sidebar() {
     { path: '/tasks', icon: CheckSquare, label: t('nav_tasks') },
     { path: '/planner', icon: Calendar, label: t('nav_planner') },
     { path: '/exams', icon: ClipboardList, label: t('nav_exams') },
+    { path: '/grades', icon: Trophy, label: t('grades_title') },
     { path: '/study', icon: Brain, label: t('nav_study') },
   ];
 

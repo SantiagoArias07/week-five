@@ -8,6 +8,7 @@ const fmt = (e) => ({
   date: e.date,
   topics: JSON.parse(e.topics || '[]'),
   room: e.room,
+  weightPct: e.weight_pct ?? 0,
 });
 
 const list = (req, res) => {
@@ -16,13 +17,13 @@ const list = (req, res) => {
 };
 
 const create = (req, res) => {
-  const { title, subject, subjectColor = '#6366f1', date, topics = [], room = '' } = req.body;
+  const { title, subject, subjectColor = '#6366f1', date, topics = [], room = '', weightPct = 0 } = req.body;
   if (!title?.trim() || !subject?.trim() || !date)
     return res.status(400).json({ message: 'Title, subject, and date are required' });
 
   const { lastInsertRowid } = db.prepare(
-    'INSERT INTO exams (user_id, title, subject, subject_color, date, topics, room) VALUES (?,?,?,?,?,?,?)'
-  ).run(req.user.id, title.trim(), subject.trim(), subjectColor, date, JSON.stringify(topics), room);
+    'INSERT INTO exams (user_id, title, subject, subject_color, date, topics, room, weight_pct) VALUES (?,?,?,?,?,?,?,?)'
+  ).run(req.user.id, title.trim(), subject.trim(), subjectColor, date, JSON.stringify(topics), room, Number(weightPct));
 
   res.status(201).json(fmt(db.prepare('SELECT * FROM exams WHERE id = ?').get(lastInsertRowid)));
 };

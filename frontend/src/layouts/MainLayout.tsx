@@ -7,6 +7,8 @@ import { useSubjectStore } from '../store/useSubjectStore';
 import { useExamStore } from '../store/useExamStore';
 import { useNotificationStore } from '../store/useNotificationStore';
 import { usePlannerStore } from '../store/usePlannerStore';
+import { useGradeStore } from '../store/useGradeStore';
+import { useStudySessionStore } from '../store/useStudySessionStore';
 import { useUIStore } from '../store/useUIStore';
 import { api } from '../utils/api';
 import { UserSettings } from '../types';
@@ -23,6 +25,8 @@ export default function MainLayout() {
     useSubjectStore.getState().hydrate();
     useExamStore.getState().hydrate();
     usePlannerStore.getState().hydrate();
+    useGradeStore.getState().hydrate();
+    useStudySessionStore.getState().loadWeekly();
 
     // Load settings → sync dark mode + language from API
     api.get<UserSettings>('/settings').then((settings) => {

@@ -26,6 +26,26 @@ export interface Exam {
   date: string;
   topics: string[];
   room: string;
+  weightPct: number;  // 0–100, how much this exam counts toward the final grade
+}
+
+export interface Grade {
+  id: string;
+  subject: string;
+  title: string;
+  score: number;
+  maxScore: number;
+  weightPct: number;
+  type: 'exam' | 'quiz' | 'homework' | 'project' | 'other';
+  date: string;
+  notes: string;
+  createdAt: string;
+}
+
+export interface WeeklyStudyDay {
+  date: string;
+  totalMinutes: number;
+  sessions: number;
 }
 
 export interface Notification {

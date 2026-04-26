@@ -91,6 +91,7 @@ export const mockExams: Exam[] = [
     date: 'April 20, 2026',
     topics: ['React', 'Node.js', 'REST APIs'],
     room: 'Room 301',
+    weightPct: 30,
   },
   {
     id: '2',
@@ -100,6 +101,7 @@ export const mockExams: Exam[] = [
     date: 'May 5, 2026',
     topics: ['SQL', 'Normalization', 'Indexes'],
     room: 'Lab 102',
+    weightPct: 40,
   },
   {
     id: '3',
@@ -109,6 +111,7 @@ export const mockExams: Exam[] = [
     date: 'April 18, 2026',
     topics: ['Trees', 'Graphs', 'Sorting'],
     room: 'Room 205',
+    weightPct: 15,
   },
   {
     id: '4',
@@ -118,5 +121,6 @@ export const mockExams: Exam[] = [
     date: 'April 25, 2026',
     topics: ['SCRUM', 'Design Patterns', 'Testing'],
     room: 'Auditorium A',
+    weightPct: 25,
   },
 ];

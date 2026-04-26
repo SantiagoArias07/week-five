@@ -11,6 +11,7 @@ import Planner from '../pages/Planner';
 import Exams from '../pages/Exams';
 import StudyMode from '../pages/StudyMode';
 import Settings from '../pages/Settings';
+import Grades from '../pages/Grades';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
       { path: 'planner', element: <Planner /> },
       { path: 'exams', element: <Exams /> },
       { path: 'study', element: <StudyMode /> },
+      { path: 'grades', element: <Grades /> },
       { path: 'settings', element: <Settings /> },
     ],
   },

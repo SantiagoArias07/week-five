@@ -2,15 +2,17 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   CheckSquare, BookOpen, ClipboardList, TrendingUp,
-  Plus, Calendar, AlertCircle, ArrowRight, Zap, MapPin,
+  Plus, Calendar, AlertCircle, ArrowRight, Zap, MapPin, Trophy,
 } from 'lucide-react';
 import { useTaskStore } from '../store/useTaskStore';
 import { useSubjectStore } from '../store/useSubjectStore';
 import { useExamStore } from '../store/useExamStore';
 import { useAuthStore } from '../store/useAuthStore';
+import { useGradeStore } from '../store/useGradeStore';
 import { useT } from '../hooks/useT';
 import { useUIStore } from '../store/useUIStore';
 import type { TranslationKey } from '../i18n';
+import type { Grade } from '../types';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 function greeting(t: (k: TranslationKey) => string): string {
@@ -34,6 +36,38 @@ function daysUntil(dateStr: string): number {
   const d = new Date(dateStr);
   d.setHours(0, 0, 0, 0);
   return Math.round((d.getTime() - today.getTime()) / 86400000);
+}
+
+// ── grade helpers ─────────────────────────────────────────────────────────────
+function calcSubjectAvg(grades: Grade[]): number {
+  if (grades.length === 0) return 0;
+  const totalW = grades.reduce((s, g) => s + g.weightPct, 0);
+  if (totalW > 0) {
+    return grades.reduce((s, g) => s + (g.score / Math.max(1, g.maxScore)) * 100 * g.weightPct, 0) / totalW;
+  }
+  return grades.reduce((s, g) => s + (g.score / Math.max(1, g.maxScore)) * 100, 0) / grades.length;
+}
+
+function letterGrade(p: number): string {
+  if (p >= 97) return 'A+';
+  if (p >= 93) return 'A';
+  if (p >= 90) return 'A−';
+  if (p >= 87) return 'B+';
+  if (p >= 83) return 'B';
+  if (p >= 80) return 'B−';
+  if (p >= 77) return 'C+';
+  if (p >= 73) return 'C';
+  if (p >= 70) return 'C−';
+  if (p >= 60) return 'D';
+  return 'F';
+}
+
+function gradeColor(p: number): string {
+  if (p >= 90) return 'text-emerald-600 dark:text-emerald-400';
+  if (p >= 80) return 'text-blue-600 dark:text-blue-400';
+  if (p >= 70) return 'text-amber-600 dark:text-amber-400';
+  if (p >= 60) return 'text-orange-600 dark:text-orange-400';
+  return 'text-red-600 dark:text-red-400';
 }
 
 // ── stat card ─────────────────────────────────────────────────────────────────
@@ -63,6 +97,7 @@ export default function Dashboard() {
   const { subjects } = useSubjectStore();
   const { exams } = useExamStore();
   const { user } = useAuthStore();
+  const { grades } = useGradeStore();
   const t = useT();
 
   const { language } = useUIStore();
@@ -153,6 +188,22 @@ export default function Dashboard() {
     if (!upcoming.length) return null;
     return [...upcoming].sort((a, b) => daysUntil(a.date) - daysUntil(b.date))[0];
   }, [exams]);
+
+  // ── grade summary ─────────────────────────────────────────────────────────
+  const gradeSummary = useMemo(() => {
+    if (grades.length === 0) return null;
+    const map = new Map<string, Grade[]>();
+    grades.forEach((g) => {
+      if (!map.has(g.subject)) map.set(g.subject, []);
+      map.get(g.subject)!.push(g);
+    });
+    const bySubject = Array.from(map.entries())
+      .map(([subject, gs]) => ({ subject, avg: calcSubjectAvg(gs) }))
+      .sort((a, b) => b.avg - a.avg)
+      .slice(0, 3);
+    const overall = calcSubjectAvg(grades);
+    return { overall, bySubject };
+  }, [grades]);
 
   const dateLabel = today.toLocaleDateString(language === 'es' ? 'es-MX' : 'en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
 
@@ -553,6 +604,66 @@ export default function Dashboard() {
                 <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{progressPercent}%</span>
               </div>
             </div>
+          </div>
+
+          {/* Grade Summary */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Trophy size={15} className="text-amber-500" />
+                <h2 className="font-semibold text-gray-900 dark:text-white">{t('grades_title')}</h2>
+              </div>
+              <button
+                onClick={() => navigate('/grades')}
+                className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium flex items-center gap-1"
+              >
+                {t('grades_title')} <ArrowRight size={12} />
+              </button>
+            </div>
+
+            {!gradeSummary ? (
+              <div className="text-center py-4">
+                <p className="text-sm text-gray-400 dark:text-gray-500">{t('grades_no_grades')}</p>
+              </div>
+            ) : (
+              <div>
+                {/* Overall average */}
+                <div className="flex items-center gap-3 mb-4 pb-3 border-b border-gray-100 dark:border-gray-700">
+                  <div className="flex-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('grades_gpa')}</p>
+                    <p className={`text-2xl font-bold leading-tight ${gradeColor(gradeSummary.overall)}`}>
+                      {gradeSummary.overall.toFixed(1)}
+                    </p>
+                  </div>
+                  <span className={`text-lg font-bold px-3 py-1.5 rounded-xl bg-gray-50 dark:bg-gray-700 ${gradeColor(gradeSummary.overall)}`}>
+                    {letterGrade(gradeSummary.overall)}
+                  </span>
+                </div>
+
+                {/* Top subjects */}
+                <div className="space-y-2.5">
+                  {gradeSummary.bySubject.map((s) => (
+                    <div key={s.subject} className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">{s.subject}</p>
+                        <div className="mt-1 h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${Math.min(100, s.avg)}%`,
+                              backgroundColor: s.avg >= 90 ? '#10b981' : s.avg >= 70 ? '#6366f1' : '#f59e0b',
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <span className={`text-xs font-bold flex-shrink-0 ${gradeColor(s.avg)}`}>
+                        {s.avg.toFixed(0)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Actions */}
