@@ -1,4 +1,8 @@
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
+// In dev, Vite proxies /api → localhost:5001 (see vite.config.ts).
+// In production, go directly to the Railway backend.
+const BASE = import.meta.env.DEV
+  ? '/api'
+  : ((import.meta.env.VITE_API_URL as string | undefined) ?? 'https://week-five-production.up.railway.app/api');
 
 function buildHeaders(): HeadersInit {
   const token = localStorage.getItem('wf_token');
