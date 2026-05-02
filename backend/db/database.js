@@ -1,7 +1,13 @@
 const { DatabaseSync } = require('node:sqlite');
 const path = require('path');
+const fs = require('fs');
 
-const db = new DatabaseSync(path.join(__dirname, '../weekfive.db'));
+// In production (Railway) use /app/data so the DB lives on the mounted Volume.
+// In development fall back to the local backend/ folder.
+const DB_DIR = process.env.DB_DIR || path.join(__dirname, '..');
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+
+const db = new DatabaseSync(path.join(DB_DIR, 'weekfive.db'));
 
 db.exec('PRAGMA journal_mode = WAL');
 db.exec('PRAGMA foreign_keys = ON');
