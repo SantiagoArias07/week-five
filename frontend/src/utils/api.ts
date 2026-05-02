@@ -1,4 +1,4 @@
-const BASE = '/api';
+const BASE = (import.meta.env.VITE_API_URL as string | undefined) ?? '/api';
 
 function buildHeaders(): HeadersInit {
   const token = localStorage.getItem('wf_token');
