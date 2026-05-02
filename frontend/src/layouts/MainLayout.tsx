@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import TopBar from '../components/TopBar';
@@ -14,6 +14,7 @@ import { api } from '../utils/api';
 import { UserSettings } from '../types';
 
 export default function MainLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { setDarkMode, setLanguage, darkMode } = useUIStore();
 
   useEffect(() => {
@@ -40,9 +41,18 @@ export default function MainLayout() {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden transition-colors duration-200">
-      <Sidebar />
+      {/* Mobile overlay backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
       <div className="flex-1 flex flex-col min-w-0">
-        <TopBar />
+        <TopBar onMenuClick={() => setSidebarOpen(true)} />
         <main className="flex-1 overflow-y-auto scrollbar-thin">
           <Outlet />
         </main>

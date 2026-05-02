@@ -85,7 +85,7 @@ export default function StudyMode() {
   const weekSessions = chartData.reduce((s, d) => s + d.sessions, 0);
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-2xl mx-auto">
       {/* Header */}
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('study_title')}</h1>

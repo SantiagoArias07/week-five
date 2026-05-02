@@ -145,7 +145,7 @@ export default function SubjectDetail() {
   ];
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
       {/* Back */}
       <button
         onClick={() => navigate('/subjects')}
@@ -172,7 +172,7 @@ export default function SubjectDetail() {
               <span className="text-sm font-medium opacity-80">Subject</span>
             </div>
             <h1 className="text-2xl font-bold mb-3">{subject.name}</h1>
-            <div className="flex items-center gap-4 text-sm opacity-90">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm opacity-90">
               <span className="flex items-center gap-1.5">
                 <User size={13} />
                 {subject.teacher || 'No teacher set'}
@@ -195,21 +195,23 @@ export default function SubjectDetail() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 mb-6 bg-gray-100 rounded-xl p-1 w-fit">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              activeTab === tab.key
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
+      <div className="overflow-x-auto mb-6 -mx-4 sm:mx-0 px-4 sm:px-0">
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-700 rounded-xl p-1 w-max sm:w-fit">
+          {tabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                activeTab === tab.key
+                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+              }`}
+            >
+              {tab.icon}
+              {tab.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Tab Content */}

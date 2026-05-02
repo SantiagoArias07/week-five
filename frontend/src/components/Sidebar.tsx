@@ -11,9 +11,15 @@ import {
   Settings,
   GraduationCap,
   Trophy,
+  X,
 } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+  open?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const t = useT();
@@ -31,9 +37,19 @@ export default function Sidebar() {
   ];
 
   return (
-    <aside className="w-60 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0 transition-colors duration-200">
-      {/* Brand */}
-      <div className="px-4 py-5 border-b border-gray-100 dark:border-gray-700">
+    <aside
+      className={[
+        // Mobile: fixed overlay, slide in/out
+        'fixed inset-y-0 left-0 z-50 w-64',
+        'transform transition-transform duration-300 ease-in-out',
+        open ? 'translate-x-0' : '-translate-x-full',
+        // Desktop: static sidebar, always visible
+        'md:relative md:translate-x-0 md:z-auto md:w-60',
+        'h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col flex-shrink-0 transition-colors duration-200',
+      ].join(' ')}
+    >
+      {/* Brand + mobile close button */}
+      <div className="px-4 py-5 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center flex-shrink-0">
             <GraduationCap size={16} className="text-white" />
@@ -43,6 +59,13 @@ export default function Sidebar() {
             <p className="text-xs text-gray-400 dark:text-gray-500 leading-tight">{t('nav_academic_manager')}</p>
           </div>
         </div>
+        {/* Close button only on mobile */}
+        <button
+          onClick={onClose}
+          className="md:hidden p-1 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Main Navigation */}
@@ -55,8 +78,9 @@ export default function Sidebar() {
             key={item.path}
             to={item.path}
             end={item.path === '/'}
+            onClick={onClose}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
                 isActive
                   ? 'bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 font-medium'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
@@ -80,8 +104,9 @@ export default function Sidebar() {
       <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-700 pt-3 space-y-0.5">
         <NavLink
           to="/settings"
+          onClick={onClose}
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 ${
               isActive
                 ? 'bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 font-medium'
                 : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
@@ -98,7 +123,7 @@ export default function Sidebar() {
 
         {/* User Profile */}
         <div
-          onClick={() => navigate('/settings')}
+          onClick={() => { navigate('/settings'); onClose?.(); }}
           className="flex items-center gap-3 px-3 py-2 mt-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
         >
           <div className="w-7 h-7 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center flex-shrink-0">

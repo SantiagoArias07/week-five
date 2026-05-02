@@ -18,24 +18,25 @@ export default function Tasks() {
   const filtered = getFilteredTasks().length;
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('tasks_title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-0.5">{t('tasks_subtitle')}</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t('tasks_title')}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-sm">{t('tasks_subtitle')}</p>
         </div>
         <button
           onClick={() => setModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors flex-shrink-0"
         >
           <Plus size={16} />
-          {t('tasks_add')}
+          <span className="hidden sm:inline">{t('tasks_add')}</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
       {/* Quick stats strip */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: 'Total', count: total, color: 'text-gray-700 dark:text-gray-200', bg: 'bg-gray-100 dark:bg-gray-700' },
           { label: t('tasks_todo'), count: todo, color: 'text-gray-600 dark:text-gray-300', bg: 'bg-gray-100 dark:bg-gray-700' },

@@ -152,21 +152,22 @@ export default function Exams() {
   }, [planExam, planDays]);
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('exams_title')}</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-0.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t('exams_title')}</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-sm">
             {exams.length} {t('exams_scheduled')}
           </p>
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors flex-shrink-0"
         >
           <Plus size={16} />
-          {t('exams_add')}
+          <span className="hidden sm:inline">{t('exams_add')}</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 

@@ -314,14 +314,14 @@ export default function Planner() {
 
   // ── render ────────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('planner_title')}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{t('planner_title')}</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-0.5">{t('planner_subtitle')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           {/* View toggle */}
           <div className="flex rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
             <button
@@ -347,10 +347,11 @@ export default function Planner() {
           </div>
           <button
             onClick={() => openNew(isoDate(today))}
-            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors"
+            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-xl transition-colors"
           >
             <Plus size={15} />
-            {t('planner_add_event')}
+            <span className="hidden sm:inline">{t('planner_add_event')}</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>
@@ -399,7 +400,8 @@ export default function Planner() {
 
       {/* ── WEEKLY VIEW ──────────────────────────────────────────────────────── */}
       {view === 'week' && (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden overflow-x-auto">
+          <div className="min-w-[560px]">
           {/* Day headers */}
           <div className="grid border-b border-gray-200 dark:border-gray-700" style={{ gridTemplateColumns: '64px repeat(7, 1fr)' }}>
             <div className="h-14 border-r border-gray-100 dark:border-gray-700" />
@@ -526,6 +528,7 @@ export default function Planner() {
               </p>
             </div>
           )}
+          </div>
         </div>
       )}
 

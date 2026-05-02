@@ -156,22 +156,23 @@ export default function Grades() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Trophy size={22} className="text-amber-500" />
             {t('grades_title')}
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-0.5">{t('grades_subtitle')}</p>
+          <p className="text-gray-500 dark:text-gray-400 mt-0.5 text-sm">{t('grades_subtitle')}</p>
         </div>
         <button
           onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition-colors flex-shrink-0"
         >
           <Plus size={16} />
-          {t('grades_add')}
+          <span className="hidden sm:inline">{t('grades_add')}</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
@@ -271,7 +272,8 @@ export default function Grades() {
                   </button>
 
                   {isOpen && (
-                    <div className="border-t border-gray-100 dark:border-gray-700">
+                    <div className="border-t border-gray-100 dark:border-gray-700 overflow-x-auto">
+                      <div className="min-w-[480px]">
                       <div className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-4 px-5 py-2 text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wide bg-gray-50 dark:bg-gray-700/50">
                         <span>{t('grades_title_col')}</span>
                         <span className="text-right">{t('grades_score')}</span>
@@ -311,6 +313,7 @@ export default function Grades() {
                           </div>
                         );
                       })}
+                      </div>
                     </div>
                   )}
                 </div>
