@@ -8,12 +8,22 @@
 
 ## Screenshots
 
-<img width="1800" height="1039" alt="Screenshot 2026-05-02 at 8 12 40 p m" src="https://github.com/user-attachments/assets/e63844d2-c118-47d1-b552-2d5c65eac53d" />
-<img width="1800" height="1039" alt="Screenshot 2026-05-02 at 8 13 28 p m" src="https://github.com/user-attachments/assets/d5886a80-aab8-42c5-8b9d-63eda9b893b9" />
-<img width="1800" height="1039" alt="Screenshot 2026-05-02 at 8 13 46 p m" src="https://github.com/user-attachments/assets/92b22a77-5afd-4a68-84a6-dbb990f5e03f" />
-<img width="1800" height="1039" alt="Screenshot 2026-05-02 at 8 15 27 p m" src="https://github.com/user-attachments/assets/a0f62430-aa28-43b4-86bf-32afcf2928ef" />
-<img width="1800" height="1039" alt="Screenshot 2026-05-02 at 8 16 14 p m" src="https://github.com/user-attachments/assets/f3dd61f2-4199-4093-a253-bf88743501e9" />
-<img width="1800" height="1039" alt="Screenshot 2026-05-02 at 8 16 36 p m" src="https://github.com/user-attachments/assets/c75ce846-ebdd-483b-8177-48ec254d8151" />
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/d5886a80-aab8-42c5-8b9d-63eda9b893b9"        
+  width="48%" alt="Dashboard" />       
+    <img src="https://github.com/user-attachments/assets/92b22a77-5afd-4a68-84a6-dbb990f5e03f" 
+  width="48%" alt="Planner" />         
+    <br/><br/>                       
+    <img src="https://github.com/user-attachments/assets/a0f62430-aa28-43b4-86bf-32afcf2928ef"        
+  width="48%" alt="Exams" />         
+    <img src="https://github.com/user-attachments/assets/f3dd61f2-4199-4093-a253-bf88743501e9" 
+  width="48%" alt="Grades" />          
+    <br/><br/>
+    <img src="https://github.com/user-attachments/assets/c75ce846-ebdd-483b-8177-48ec254d8151"        
+  width="48%" alt="Tasks" />         
+    <img src="https://github.com/user-attachments/assets/c5571cd6-95c5-4558-91b6-06b33b73d6e0" 
+  width="48%" alt="Subjects" />
+  </div>
 
 ---
 
