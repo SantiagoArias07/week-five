@@ -46,7 +46,8 @@ app.get('/api/admin/users', (req, res) => {
   }
   const db = require('./db/database');
   const users = db.prepare('SELECT id, name, email, created_at FROM users ORDER BY id').all();
-  res.json({ count: users.length, users });
+  const dbDir = process.env.DB_DIR || 'NOT SET (using fallback)';
+  res.json({ db_dir_env: dbDir, count: users.length, users });
 });
 
 app.listen(PORT, () => {

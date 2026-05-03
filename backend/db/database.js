@@ -7,7 +7,10 @@ const fs = require('fs');
 const DB_DIR = process.env.DB_DIR || path.join(__dirname, '..');
 if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
 
-const db = new DatabaseSync(path.join(DB_DIR, 'weekfive.db'));
+const DB_PATH = path.join(DB_DIR, 'weekfive.db');
+console.log(`[DB] Using database at: ${DB_PATH}`);
+
+const db = new DatabaseSync(DB_PATH);
 
 db.exec('PRAGMA journal_mode = WAL');
 db.exec('PRAGMA foreign_keys = ON');
