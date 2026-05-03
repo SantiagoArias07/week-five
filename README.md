@@ -9,20 +9,20 @@
 ## Screenshots
 
 <div align="center">
-    <img src="https://github.com/user-attachments/assets/d5886a80-aab8-42c5-8b9d-63eda9b893b9"        
-  width="48%" alt="Dashboard" />       
-    <img src="https://github.com/user-attachments/assets/92b22a77-5afd-4a68-84a6-dbb990f5e03f" 
-  width="48%" alt="Planner" />         
+    <img src="https://github.com/user-attachments/assets/2dfc13eb-364f-41d5-834c-71528aa158cb"        
+  width="48%" alt="Home" />       
+    <img src="https://github.com/user-attachments/assets/07ab2adc-0907-49ee-a708-598b55845a3b" 
+  width="48%" alt="Subject" />         
     <br/><br/>                       
-    <img src="https://github.com/user-attachments/assets/a0f62430-aa28-43b4-86bf-32afcf2928ef"        
-  width="48%" alt="Exams" />         
-    <img src="https://github.com/user-attachments/assets/f3dd61f2-4199-4093-a253-bf88743501e9" 
-  width="48%" alt="Grades" />          
-    <br/><br/>
-    <img src="https://github.com/user-attachments/assets/c75ce846-ebdd-483b-8177-48ec254d8151"        
+    <img src="https://github.com/user-attachments/assets/ed90e1de-d5d7-4e28-9612-91ca437ef32e"        
   width="48%" alt="Tasks" />         
-    <img src="https://github.com/user-attachments/assets/c5571cd6-95c5-4558-91b6-06b33b73d6e0" 
-  width="48%" alt="Subjects" />
+    <img src="https://github.com/user-attachments/assets/d58c26e0-7601-4540-bdb0-2b2fecb1b34f" 
+  width="48%" alt="Planner" />          
+    <br/><br/>
+    <img src="https://github.com/user-attachments/assets/740f4ca3-1d8f-4df4-bb3e-d45d37153137"        
+  width="48%" alt="Exams" />         
+    <img src="https://github.com/user-attachments/assets/0879a3fb-2155-49dc-b7d0-72fc690a5e5f" 
+  width="48%" alt="Grades" />
   </div>
 
 ---
