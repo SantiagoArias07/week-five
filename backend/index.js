@@ -38,6 +38,17 @@ app.use('/api/study-sessions', require('./routes/study-sessions'));
 // Health check
 app.get('/api/test', (req, res) => res.json({ message: 'API working', status: 'ok' }));
 
+// Admin: view users (protected by ADMIN_SECRET env var)
+app.get('/api/admin/users', (req, res) => {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret || req.query.secret !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const db = require('./db/database');
+  const users = db.prepare('SELECT id, name, email, created_at FROM users ORDER BY id').all();
+  res.json({ count: users.length, users });
+});
+
 app.listen(PORT, () => {
   console.log(`WeekFive server running on http://localhost:${PORT}`);
 });
