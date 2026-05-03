@@ -6,7 +6,7 @@
 
 ---
 
-## Screenshots
+## Preview
 
 <div align="center">
     <img src="https://github.com/user-attachments/assets/2dfc13eb-364f-41d5-834c-71528aa158cb"        
