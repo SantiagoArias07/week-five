@@ -2,7 +2,7 @@
 
 > A full-stack web application that helps students organize their entire academic life in one place: tasks, exams, grades, study sessions, and a weekly planner — with real-time persistence and bilingual (EN/ES) support.
 
-**Live site →** [weekfive-nine.vercel.app](https://weekfive-nine.vercel.app)
+**Live site →** [weekfive-tec.vercel.app](https://weekfive-tec.vercel.app)
 
 ---
 
