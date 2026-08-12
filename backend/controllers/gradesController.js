@@ -1,4 +1,5 @@
 const db = require('../db/database');
+const wrap = require('../middleware/asyncHandler');
 
 const fmt = (g) => ({
   id: String(g.id),
@@ -13,14 +14,14 @@ const fmt = (g) => ({
   createdAt: g.created_at,
 });
 
-const list = (req, res) => {
-  const rows = db.prepare(
+const list = async (req, res) => {
+  const rows = await db.prepare(
     'SELECT * FROM grades WHERE user_id = ? ORDER BY date DESC, id DESC'
   ).all(req.user.id);
   res.json(rows.map(fmt));
 };
 
-const create = (req, res) => {
+const create = async (req, res) => {
   const {
     subject, title, score,
     maxScore = 100, weightPct = 0,
@@ -29,7 +30,7 @@ const create = (req, res) => {
   if (!subject?.trim() || !title?.trim() || score === undefined || score === null)
     return res.status(400).json({ message: 'subject, title, and score are required' });
 
-  const { lastInsertRowid } = db.prepare(
+  const { lastInsertRowid } = await db.prepare(
     `INSERT INTO grades (user_id, subject, title, score, max_score, weight_pct, type, date, notes)
      VALUES (?,?,?,?,?,?,?,?,?)`
   ).run(
@@ -43,15 +44,15 @@ const create = (req, res) => {
     date,
     (notes || '').trim(),
   );
-  res.status(201).json(fmt(db.prepare('SELECT * FROM grades WHERE id = ?').get(lastInsertRowid)));
+  res.status(201).json(fmt(await db.prepare('SELECT * FROM grades WHERE id = ?').get(lastInsertRowid)));
 };
 
-const remove = (req, res) => {
-  const { changes } = db.prepare(
+const remove = async (req, res) => {
+  const { changes } = await db.prepare(
     'DELETE FROM grades WHERE id = ? AND user_id = ?'
   ).run(req.params.id, req.user.id);
   if (!changes) return res.status(404).json({ message: 'Grade not found' });
   res.json({ message: 'Grade deleted' });
 };
 
-module.exports = { list, create, remove };
+module.exports = wrap({ list, create, remove });

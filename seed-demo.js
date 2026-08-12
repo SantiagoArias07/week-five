@@ -1,7 +1,9 @@
 // WeekFive — Demo Account Seeder
 // Run: node seed-demo.js
+// Override the target API with SEED_API_URL, e.g.
+//   SEED_API_URL=https://weekfive-backend.onrender.com/api node seed-demo.js
 
-const BASE = 'https://week-five-production.up.railway.app/api';
+const BASE = process.env.SEED_API_URL || 'https://weekfive-backend.onrender.com/api';
 
 const req = async (method, path, body, token) => {
   const res = await fetch(`${BASE}${path}`, {

@@ -1,4 +1,5 @@
 const db = require('../db/database');
+const wrap = require('../middleware/asyncHandler');
 
 const fmt = (s) => ({
   id: String(s.id),
@@ -9,8 +10,8 @@ const fmt = (s) => ({
   taskCount: s.taskCount || 0,
 });
 
-const list = (req, res) => {
-  const rows = db.prepare(`
+const list = async (req, res) => {
+  const rows = await db.prepare(`
     SELECT s.*, COUNT(t.id) as taskCount
     FROM subjects s
     LEFT JOIN tasks t ON t.subject = s.name AND t.user_id = s.user_id
@@ -21,20 +22,20 @@ const list = (req, res) => {
   res.json(rows.map(fmt));
 };
 
-const create = (req, res) => {
+const create = async (req, res) => {
   const { name, color = '#6366f1', teacher = '', credits = 3 } = req.body;
   if (!name?.trim()) return res.status(400).json({ message: 'Name is required' });
 
-  const { lastInsertRowid } = db.prepare(
+  const { lastInsertRowid } = await db.prepare(
     'INSERT INTO subjects (user_id, name, color, teacher, credits) VALUES (?,?,?,?,?)'
   ).run(req.user.id, name.trim(), color, teacher, credits);
 
-  const row = db.prepare('SELECT *, 0 as taskCount FROM subjects WHERE id = ?').get(lastInsertRowid);
+  const row = await db.prepare('SELECT *, 0 as taskCount FROM subjects WHERE id = ?').get(lastInsertRowid);
   res.status(201).json(fmt(row));
 };
 
-const getOne = (req, res) => {
-  const row = db.prepare(`
+const getOne = async (req, res) => {
+  const row = await db.prepare(`
     SELECT s.*, COUNT(t.id) as taskCount
     FROM subjects s
     LEFT JOIN tasks t ON t.subject = s.name AND t.user_id = s.user_id
@@ -45,10 +46,10 @@ const getOne = (req, res) => {
   res.json(fmt(row));
 };
 
-const remove = (req, res) => {
-  const { changes } = db.prepare('DELETE FROM subjects WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
+const remove = async (req, res) => {
+  const { changes } = await db.prepare('DELETE FROM subjects WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
   if (!changes) return res.status(404).json({ message: 'Subject not found' });
   res.json({ message: 'Subject deleted' });
 };
 
-module.exports = { list, getOne, create, remove };
+module.exports = wrap({ list, getOne, create, remove });

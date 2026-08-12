@@ -1,7 +1,8 @@
 const db = require('../db/database');
+const wrap = require('../middleware/asyncHandler');
 
-const listWeekly = (req, res) => {
-  const rows = db.prepare(`
+const listWeekly = async (req, res) => {
+  const rows = await db.prepare(`
     SELECT
       date,
       SUM(duration) AS totalMinutes,
@@ -15,13 +16,13 @@ const listWeekly = (req, res) => {
   res.json(rows);
 };
 
-const create = (req, res) => {
+const create = async (req, res) => {
   const { subject = '', duration = 25, date } = req.body;
   if (!date) return res.status(400).json({ message: 'date is required' });
-  const { lastInsertRowid } = db.prepare(
+  const { lastInsertRowid } = await db.prepare(
     'INSERT INTO study_sessions (user_id, subject, duration, date) VALUES (?,?,?,?)'
   ).run(req.user.id, subject, Number(duration), date);
   res.status(201).json({ id: String(lastInsertRowid), subject, duration: Number(duration), date });
 };
 
-module.exports = { listWeekly, create };
+module.exports = wrap({ listWeekly, create });

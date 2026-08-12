@@ -1,21 +1,42 @@
-const { DatabaseSync } = require('node:sqlite');
+const { createClient } = require('@libsql/client');
 const path = require('path');
-const fs = require('fs');
 
-// In production (Railway) use /app/data so the DB lives on the mounted Volume.
-// In development fall back to the local backend/ folder.
-const DB_DIR = process.env.DB_DIR || path.join(__dirname, '..');
-if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+// Production: Turso (libSQL) via TURSO_DATABASE_URL + TURSO_AUTH_TOKEN.
+// Development: falls back to a local SQLite file (backend/weekfive.db) — no
+// credentials needed, so `npm run dev` works out of the box.
+const url = process.env.TURSO_DATABASE_URL || `file:${path.join(__dirname, '..', 'weekfive.db')}`;
+const authToken = process.env.TURSO_AUTH_TOKEN;
 
-const DB_PATH = path.join(DB_DIR, 'weekfive.db');
-console.log(`[DB] Using database at: ${DB_PATH}`);
+console.log(`[DB] Using ${url.startsWith('file:') ? 'local file' : 'Turso'} database`);
 
-const db = new DatabaseSync(DB_PATH);
+const client = createClient(authToken ? { url, authToken } : { url });
 
-db.exec('PRAGMA journal_mode = WAL');
-db.exec('PRAGMA foreign_keys = ON');
+// libSQL rejects `undefined` bind values — coerce them to null.
+const norm = (args) => args.map((v) => (v === undefined ? null : v));
 
-db.exec(`
+// Compatibility shim mimicking node:sqlite's `prepare(sql).get/all/run(...)`
+// API, but async (network DB). Controllers just add `await` to each call.
+function prepare(sql) {
+  return {
+    async get(...args) {
+      const { rows } = await client.execute({ sql, args: norm(args) });
+      return rows[0];
+    },
+    async all(...args) {
+      const { rows } = await client.execute({ sql, args: norm(args) });
+      return rows;
+    },
+    async run(...args) {
+      const r = await client.execute({ sql, args: norm(args) });
+      return {
+        lastInsertRowid: r.lastInsertRowid != null ? Number(r.lastInsertRowid) : undefined,
+        changes: Number(r.rowsAffected),
+      };
+    },
+  };
+}
+
+const SCHEMA = `
   CREATE TABLE IF NOT EXISTS users (
     id            INTEGER PRIMARY KEY AUTOINCREMENT,
     name          TEXT    NOT NULL,
@@ -130,12 +151,23 @@ db.exec(`
     created_at TEXT    DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
-`);
+`;
 
-// Safe migrations — add columns that may not exist yet
-try { db.exec("ALTER TABLE notifications ADD COLUMN source_type TEXT DEFAULT ''"); } catch {}
-try { db.exec("ALTER TABLE notifications ADD COLUMN source_id   TEXT DEFAULT ''"); } catch {}
-try { db.exec("ALTER TABLE planner_events ADD COLUMN date TEXT DEFAULT ''"); } catch {}
-try { db.exec("ALTER TABLE exams ADD COLUMN weight_pct REAL DEFAULT 0"); } catch {}
+// Runs schema + safe migrations on startup. Awaited in index.js before listen.
+async function initDb() {
+  await client.execute('PRAGMA foreign_keys = ON').catch(() => {});
+  await client.executeMultiple(SCHEMA);
 
-module.exports = db;
+  // Safe migrations — add columns that may not exist yet (ignore if present)
+  const migrations = [
+    "ALTER TABLE notifications ADD COLUMN source_type TEXT DEFAULT ''",
+    "ALTER TABLE notifications ADD COLUMN source_id   TEXT DEFAULT ''",
+    "ALTER TABLE planner_events ADD COLUMN date TEXT DEFAULT ''",
+    "ALTER TABLE exams ADD COLUMN weight_pct REAL DEFAULT 0",
+  ];
+  for (const sql of migrations) {
+    try { await client.execute(sql); } catch {}
+  }
+}
+
+module.exports = { prepare, initDb, client };

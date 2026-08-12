@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
-// Initialize DB (runs CREATE TABLE IF NOT EXISTS on startup)
-require('./db/database');
+const { initDb, prepare } = require('./db/database');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -39,17 +38,33 @@ app.use('/api/study-sessions', require('./routes/study-sessions'));
 app.get('/api/test', (req, res) => res.json({ message: 'API working', status: 'ok' }));
 
 // Admin: view users (protected by ADMIN_SECRET env var)
-app.get('/api/admin/users', (req, res) => {
-  const secret = process.env.ADMIN_SECRET;
-  if (!secret || req.query.secret !== secret) {
-    return res.status(401).json({ error: 'Unauthorized' });
+app.get('/api/admin/users', async (req, res, next) => {
+  try {
+    const secret = process.env.ADMIN_SECRET;
+    if (!secret || req.query.secret !== secret) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const users = await prepare('SELECT id, name, email, created_at FROM users ORDER BY id').all();
+    res.json({ count: users.length, users });
+  } catch (err) {
+    next(err);
   }
-  const db = require('./db/database');
-  const users = db.prepare('SELECT id, name, email, created_at FROM users ORDER BY id').all();
-  const dbDir = process.env.DB_DIR || 'NOT SET (using fallback)';
-  res.json({ db_dir_env: dbDir, count: users.length, users });
 });
 
-app.listen(PORT, () => {
-  console.log(`WeekFive server running on http://localhost:${PORT}`);
+// Centralized error handler — catches rejections forwarded by asyncHandler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: 'Server error' });
 });
+
+// Initialize DB (creates tables + runs migrations), then start the server.
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`WeekFive server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error('[DB] Failed to initialize database:', err);
+    process.exit(1);
+  });

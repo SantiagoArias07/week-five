@@ -1,4 +1,5 @@
 const db = require('../db/database');
+const wrap = require('../middleware/asyncHandler');
 
 const fmt = (n) => ({
   id: String(n.id),
@@ -9,20 +10,20 @@ const fmt = (n) => ({
   createdAt: n.created_at,
 });
 
-const list = (req, res) => {
-  const rows = db.prepare(
+const list = async (req, res) => {
+  const rows = await db.prepare(
     'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 30'
   ).all(req.user.id);
   res.json(rows.map(fmt));
 };
 
-const markRead = (req, res) => {
-  db.prepare('UPDATE notifications SET read = 1 WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
+const markRead = async (req, res) => {
+  await db.prepare('UPDATE notifications SET read = 1 WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
   res.json({ message: 'Marked as read' });
 };
 
-const markAllRead = (req, res) => {
-  db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(req.user.id);
+const markAllRead = async (req, res) => {
+  await db.prepare('UPDATE notifications SET read = 1 WHERE user_id = ?').run(req.user.id);
   res.json({ message: 'All notifications marked as read' });
 };
 
@@ -30,9 +31,9 @@ const markAllRead = (req, res) => {
  * Refresh auto-generated notifications based on current tasks and exams.
  * Deletes old auto-generated ones, then creates fresh ones.
  */
-const refresh = (req, res) => {
+const refresh = async (req, res) => {
   // Remove stale auto-generated notifications
-  db.prepare(
+  await db.prepare(
     "DELETE FROM notifications WHERE user_id = ? AND source_type IN ('task', 'exam')"
   ).run(req.user.id);
 
@@ -40,7 +41,7 @@ const refresh = (req, res) => {
   now.setHours(0, 0, 0, 0);
 
   // ── Tasks ─────────────────────────────────────────────────────────────────
-  const tasks = db.prepare(
+  const tasks = await db.prepare(
     "SELECT * FROM tasks WHERE user_id = ? AND status != 'done' AND due_date != '' AND due_date IS NOT NULL"
   ).all(req.user.id);
 
@@ -73,12 +74,12 @@ const refresh = (req, res) => {
     }
 
     if (title) {
-      insNotif.run(req.user.id, title, body, type, 'task', String(task.id));
+      await insNotif.run(req.user.id, title, body, type, 'task', String(task.id));
     }
   }
 
   // ── Exams ──────────────────────────────────────────────────────────────────
-  const exams = db.prepare('SELECT * FROM exams WHERE user_id = ?').all(req.user.id);
+  const exams = await db.prepare('SELECT * FROM exams WHERE user_id = ?').all(req.user.id);
 
   for (const exam of exams) {
     const examDate = new Date(exam.date);
@@ -104,14 +105,14 @@ const refresh = (req, res) => {
     }
 
     if (title) {
-      insNotif.run(req.user.id, title, body, 'exam', 'exam', String(exam.id));
+      await insNotif.run(req.user.id, title, body, 'exam', 'exam', String(exam.id));
     }
   }
 
-  const rows = db.prepare(
+  const rows = await db.prepare(
     'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 30'
   ).all(req.user.id);
   res.json(rows.map(fmt));
 };
 
-module.exports = { list, markRead, markAllRead, refresh };
+module.exports = wrap({ list, markRead, markAllRead, refresh });

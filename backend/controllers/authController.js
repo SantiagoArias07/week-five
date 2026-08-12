@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const db = require('../db/database');
+const wrap = require('../middleware/asyncHandler');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'weekfive-dev-secret';
 
@@ -13,7 +14,7 @@ function formatUser(row) {
   return { id: row.id, name: row.name, email: row.email };
 }
 
-function seedUserData(userId, name) {
+async function seedUserData(userId, name) {
   const off = (days) => {
     const d = new Date();
     d.setDate(d.getDate() + days);
@@ -30,7 +31,7 @@ function seedUserData(userId, name) {
     { name: 'Linear Algebra',     color: '#06b6d4', teacher: 'Prof. Wilson',  credits: 3 },
   ];
   const insSubj = db.prepare('INSERT INTO subjects (user_id, name, color, teacher, credits) VALUES (?,?,?,?,?)');
-  subjects.forEach(s => insSubj.run(userId, s.name, s.color, s.teacher, s.credits));
+  for (const s of subjects) await insSubj.run(userId, s.name, s.color, s.teacher, s.credits);
 
   // Tasks
   const tasks = [
@@ -42,7 +43,7 @@ function seedUserData(userId, name) {
     { title: 'Matrix transformations problem set',desc: 'Eigenvalues and linear transforms.',  subj: 'Linear Algebra',      prio: 'high',   status: 'in-progress', due: off(5) },
   ];
   const insTask = db.prepare('INSERT INTO tasks (user_id, title, description, subject, priority, status, due_date) VALUES (?,?,?,?,?,?,?)');
-  tasks.forEach(t => insTask.run(userId, t.title, t.desc, t.subj, t.prio, t.status, t.due));
+  for (const t of tasks) await insTask.run(userId, t.title, t.desc, t.subj, t.prio, t.status, t.due);
 
   // Exams
   const exams = [
@@ -52,7 +53,7 @@ function seedUserData(userId, name) {
     { title: 'Project Review',subj: 'Software Engineering', color: '#ef4444', date: off(14), topics: ['SCRUM','Design Patterns','Testing'],        room: 'Auditorium A' },
   ];
   const insExam = db.prepare('INSERT INTO exams (user_id, title, subject, subject_color, date, topics, room) VALUES (?,?,?,?,?,?,?)');
-  exams.forEach(e => insExam.run(userId, e.title, e.subj, e.color, e.date, JSON.stringify(e.topics), e.room));
+  for (const e of exams) await insExam.run(userId, e.title, e.subj, e.color, e.date, JSON.stringify(e.topics), e.room);
 
   // Notifications
   const notifs = [
@@ -61,58 +62,58 @@ function seedUserData(userId, name) {
     { title: 'Exam reminder',        body: 'Data Structures quiz in 7 days. Start reviewing trees and graphs.',        type: 'exam' },
   ];
   const insNotif = db.prepare('INSERT INTO notifications (user_id, title, body, type) VALUES (?,?,?,?)');
-  notifs.forEach(n => insNotif.run(userId, n.title, n.body, n.type));
+  for (const n of notifs) await insNotif.run(userId, n.title, n.body, n.type);
 }
 
 // ── controllers ────────────────────────────────────────────────────────────
-const register = (req, res) => {
+const register = async (req, res) => {
   const { name, email, password } = req.body;
   if (!name?.trim() || !email?.trim() || !password?.trim())
     return res.status(400).json({ message: 'All fields are required' });
   if (password.length < 6)
     return res.status(400).json({ message: 'Password must be at least 6 characters' });
 
-  if (db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase()))
+  if (await db.prepare('SELECT id FROM users WHERE email = ?').get(email.toLowerCase()))
     return res.status(409).json({ message: 'Email already registered' });
 
   const hash = bcrypt.hashSync(password, 10);
-  const { lastInsertRowid: userId } = db.prepare(
+  const { lastInsertRowid: userId } = await db.prepare(
     'INSERT INTO users (name, email, password_hash) VALUES (?,?,?)'
   ).run(name.trim(), email.toLowerCase().trim(), hash);
 
-  db.prepare('INSERT INTO user_settings (user_id) VALUES (?)').run(userId);
+  await db.prepare('INSERT INTO user_settings (user_id) VALUES (?)').run(userId);
 
-  const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(userId);
+  const user = await db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(userId);
   res.status(201).json({ token: signToken(userId, user.email), user: formatUser(user) });
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
   const { email, password } = req.body;
   if (!email?.trim() || !password?.trim())
     return res.status(400).json({ message: 'Email and password are required' });
 
-  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
+  const user = await db.prepare('SELECT * FROM users WHERE email = ?').get(email.toLowerCase());
   if (!user || !bcrypt.compareSync(password, user.password_hash))
     return res.status(401).json({ message: 'Invalid email or password' });
 
   res.json({ token: signToken(user.id, user.email), user: formatUser(user) });
 };
 
-const getMe = (req, res) => {
-  const user = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
+const getMe = async (req, res) => {
+  const user = await db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ message: 'User not found' });
   res.json(user);
 };
 
-const updateProfile = (req, res) => {
+const updateProfile = async (req, res) => {
   const { name, email, currentPassword, newPassword } = req.body;
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
+  const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(req.user.id);
   if (!user) return res.status(404).json({ message: 'User not found' });
 
   const updates = {};
   if (name?.trim()) updates.name = name.trim();
   if (email?.trim() && email.toLowerCase() !== user.email) {
-    if (db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email.toLowerCase(), req.user.id))
+    if (await db.prepare('SELECT id FROM users WHERE email = ? AND id != ?').get(email.toLowerCase(), req.user.id))
       return res.status(409).json({ message: 'Email already in use' });
     updates.email = email.toLowerCase().trim();
   }
@@ -126,16 +127,16 @@ const updateProfile = (req, res) => {
 
   if (Object.keys(updates).length > 0) {
     const set = Object.keys(updates).map(k => `${k} = ?`).join(', ');
-    db.prepare(`UPDATE users SET ${set} WHERE id = ?`).run(...Object.values(updates), req.user.id);
+    await db.prepare(`UPDATE users SET ${set} WHERE id = ?`).run(...Object.values(updates), req.user.id);
   }
 
-  const updated = db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
+  const updated = await db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(req.user.id);
   res.json(formatUser(updated));
 };
 
-const deleteAccount = (req, res) => {
-  db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
+const deleteAccount = async (req, res) => {
+  await db.prepare('DELETE FROM users WHERE id = ?').run(req.user.id);
   res.json({ message: 'Account deleted' });
 };
 
-module.exports = { register, login, getMe, updateProfile, deleteAccount };
+module.exports = wrap({ register, login, getMe, updateProfile, deleteAccount });

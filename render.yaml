@@ -1,0 +1,29 @@
+# Render Blueprint — deploys the WeekFive backend as a free web service.
+# In Render: New + → Blueprint → connect this repo. Render reads this file.
+# After the first deploy, set the "sync: false" secrets in the dashboard
+# (Environment tab) — see backend/.env.example for what each one is.
+services:
+  - type: web
+    name: weekfive-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/test
+    autoDeploy: true
+    envVars:
+      # Turso (libSQL) — create the DB at turso.tech, then paste these here.
+      - key: TURSO_DATABASE_URL
+        sync: false
+      - key: TURSO_AUTH_TOKEN
+        sync: false
+      # Auto-generated strong secret for signing JWTs.
+      - key: JWT_SECRET
+        generateValue: true
+      # Secret guarding GET /api/admin/users?secret=...
+      - key: ADMIN_SECRET
+        sync: false
+      # Custom frontend domain for CORS (any *.vercel.app is already allowed).
+      - key: FRONTEND_URL
+        sync: false

@@ -1,4 +1,5 @@
 const db = require('../db/database');
+const wrap = require('../middleware/asyncHandler');
 
 const fmt = (t) => ({
   id: String(t.id),
@@ -11,24 +12,24 @@ const fmt = (t) => ({
   createdAt: t.created_at,
 });
 
-const list = (req, res) => {
-  const rows = db.prepare('SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
+const list = async (req, res) => {
+  const rows = await db.prepare('SELECT * FROM tasks WHERE user_id = ? ORDER BY created_at DESC').all(req.user.id);
   res.json(rows.map(fmt));
 };
 
-const create = (req, res) => {
+const create = async (req, res) => {
   const { title, description = '', subject = '', priority = 'medium', status = 'todo', dueDate = '' } = req.body;
   if (!title?.trim()) return res.status(400).json({ message: 'Title is required' });
 
-  const { lastInsertRowid } = db.prepare(
+  const { lastInsertRowid } = await db.prepare(
     'INSERT INTO tasks (user_id, title, description, subject, priority, status, due_date) VALUES (?,?,?,?,?,?,?)'
   ).run(req.user.id, title.trim(), description, subject, priority, status, dueDate);
 
-  res.status(201).json(fmt(db.prepare('SELECT * FROM tasks WHERE id = ?').get(lastInsertRowid)));
+  res.status(201).json(fmt(await db.prepare('SELECT * FROM tasks WHERE id = ?').get(lastInsertRowid)));
 };
 
-const update = (req, res) => {
-  const task = db.prepare('SELECT * FROM tasks WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
+const update = async (req, res) => {
+  const task = await db.prepare('SELECT * FROM tasks WHERE id = ? AND user_id = ?').get(req.params.id, req.user.id);
   if (!task) return res.status(404).json({ message: 'Task not found' });
 
   const map = { title: 'title', description: 'description', subject: 'subject', priority: 'priority', status: 'status', dueDate: 'due_date' };
@@ -39,16 +40,16 @@ const update = (req, res) => {
 
   if (Object.keys(updates).length > 0) {
     const set = Object.keys(updates).map(k => `${k} = ?`).join(', ');
-    db.prepare(`UPDATE tasks SET ${set} WHERE id = ?`).run(...Object.values(updates), req.params.id);
+    await db.prepare(`UPDATE tasks SET ${set} WHERE id = ?`).run(...Object.values(updates), req.params.id);
   }
 
-  res.json(fmt(db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id)));
+  res.json(fmt(await db.prepare('SELECT * FROM tasks WHERE id = ?').get(req.params.id)));
 };
 
-const remove = (req, res) => {
-  const { changes } = db.prepare('DELETE FROM tasks WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
+const remove = async (req, res) => {
+  const { changes } = await db.prepare('DELETE FROM tasks WHERE id = ? AND user_id = ?').run(req.params.id, req.user.id);
   if (!changes) return res.status(404).json({ message: 'Task not found' });
   res.json({ message: 'Task deleted' });
 };
 
-module.exports = { list, create, update, remove };
+module.exports = wrap({ list, create, update, remove });
