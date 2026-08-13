@@ -13,6 +13,8 @@ services:
     healthCheckPath: /api/test
     autoDeploy: true
     envVars:
+      - key: NODE_ENV
+        value: production
       # Turso (libSQL) — create the DB at turso.tech, then paste these here.
       - key: TURSO_DATABASE_URL
         sync: false

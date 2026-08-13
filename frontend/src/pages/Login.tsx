@@ -8,6 +8,7 @@ export default function Login() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slow, setSlow] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
 
@@ -18,12 +19,16 @@ export default function Login() {
     e.preventDefault();
     setError('');
     setLoading(true);
+    // The free-tier backend may be asleep; warn if it's taking a while to wake up.
+    const slowTimer = setTimeout(() => setSlow(true), 4000);
     try {
       await login(form.email, form.password);
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
     } finally {
+      clearTimeout(slowTimer);
+      setSlow(false);
       setLoading(false);
     }
   };
@@ -93,6 +98,12 @@ export default function Login() {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
+
+            {slow && (
+              <p className="text-center text-xs text-gray-400">
+                Waking up the server… the first request can take up to a minute.
+              </p>
+            )}
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-5">

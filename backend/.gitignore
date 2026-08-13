@@ -2,5 +2,6 @@ node_modules/
 .env
 
 # libSQL / SQLite local dev artifacts
+weekfive.db
 weekfive.db-wal
 weekfive.db-shm

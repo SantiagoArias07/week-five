@@ -8,6 +8,7 @@ export default function Register() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [slow, setSlow] = useState(false);
   const { register } = useAuthStore();
   const navigate = useNavigate();
 
@@ -22,12 +23,16 @@ export default function Register() {
       return;
     }
     setLoading(true);
+    // The free-tier backend may be asleep; warn if it's taking a while to wake up.
+    const slowTimer = setTimeout(() => setSlow(true), 4000);
     try {
       await register(form.name, form.email, form.password);
       navigate('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
+      clearTimeout(slowTimer);
+      setSlow(false);
       setLoading(false);
     }
   };
@@ -111,6 +116,12 @@ export default function Register() {
             >
               {loading ? 'Creating account...' : 'Create Account'}
             </button>
+
+            {slow && (
+              <p className="text-center text-xs text-gray-400">
+                Waking up the server… the first request can take up to a minute.
+              </p>
+            )}
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-5">

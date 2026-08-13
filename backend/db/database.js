@@ -151,6 +151,17 @@ const SCHEMA = `
     created_at TEXT    DEFAULT (datetime('now')),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   );
+
+  -- Indexes on the columns every list query filters by (user_id), so the DB
+  -- scales instead of full-scanning tables as rows grow.
+  CREATE INDEX IF NOT EXISTS idx_tasks_user          ON tasks(user_id);
+  CREATE INDEX IF NOT EXISTS idx_subjects_user       ON subjects(user_id);
+  CREATE INDEX IF NOT EXISTS idx_exams_user          ON exams(user_id);
+  CREATE INDEX IF NOT EXISTS idx_planner_user        ON planner_events(user_id);
+  CREATE INDEX IF NOT EXISTS idx_notifications_user  ON notifications(user_id);
+  CREATE INDEX IF NOT EXISTS idx_notes_subject_user  ON subject_notes(subject_id, user_id);
+  CREATE INDEX IF NOT EXISTS idx_grades_user         ON grades(user_id);
+  CREATE INDEX IF NOT EXISTS idx_study_user_date     ON study_sessions(user_id, date);
 `;
 
 // Runs schema + safe migrations on startup. Awaited in index.js before listen.

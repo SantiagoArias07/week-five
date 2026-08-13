@@ -60,15 +60,17 @@
 | Technology | Role |
 |-----------|------|
 | Node.js + Express | REST API server |
-| SQLite (`node:sqlite`) | Embedded persistent database |
+| Turso (libSQL) | Serverless SQLite database — persistent, no server to manage |
 | JWT | Stateless authentication |
 | bcryptjs | Password hashing |
+| Helmet + express-rate-limit | Security headers & auth brute-force throttling |
 
 ### Deployment
 | Service | Role |
 |---------|------|
-| Vercel | React SPA — auto-deploys from `main`; `vercel.json` proxies `/api/*` to Railway and serves `/index.html` for all other routes |
-| Railway | Express API + SQLite on a persistent Volume |
+| Vercel | React SPA — auto-deploys from `main`; `vercel.json` proxies `/api/*` to the Render backend and serves `/index.html` for all other routes |
+| Render | Express API — auto-deploys from `main` via `render.yaml` |
+| Turso | Managed libSQL (SQLite) database — free tier, persistent |
 
 ---
 
@@ -87,17 +89,17 @@ week-five/
 │   │   ├── store/           # Zustand stores (useTaskStore, useExamStore, …)
 │   │   ├── types/           # TypeScript interfaces (Task, Exam, Grade, …)
 │   │   └── utils/           # api.ts fetch wrapper
-│   ├── .env.production      # VITE_API_URL → Railway backend
-│   └── vercel.json          # API proxy rewrite + SPA fallback
+│   └── vercel.json          # API proxy rewrite (→ Render) + SPA fallback
 │
 └── backend/
-    ├── db/database.js       # SQLite init — CREATE TABLE IF NOT EXISTS on startup
+    ├── db/database.js       # libSQL client + schema/indexes on startup
     ├── middleware/auth.js   # JWT verification
+    ├── middleware/asyncHandler.js  # forwards async errors to Express
     ├── routes/              # auth, tasks, subjects, exams, grades, planner, …
     └── index.js             # Express app entry point
 ```
 
-**Data flow:** User action → Zustand store → `api.ts` fetch → Express route → SQLite → JSON → store update → React re-render.
+**Data flow:** User action → Zustand store → `api.ts` fetch → Express route → libSQL query → JSON → store update → React re-render.
 
 ---
 
@@ -105,9 +107,9 @@ week-five/
 
 **Zustand over Redux:** Each resource has its own small store with hydration, CRUD methods, and local filter state — no boilerplate reducers or action creators.
 
-**Dual-environment API routing:** In development, Vite proxies `/api/*` to `localhost:5001`. In production, `vercel.json` rewrites `/api/:path*` to the Railway backend before the SPA catch-all — same relative paths work in both environments without any conditional code.
+**Dual-environment API routing:** In development, Vite proxies `/api/*` to `localhost:5001`. In production, `vercel.json` rewrites `/api/:path*` to the Render backend before the SPA catch-all — same relative paths work in both environments without any conditional code.
 
-**SQLite on Railway Volume:** Zero-config embedded database — no external service, no connection string. The `.db` file lives on a Railway persistent Volume so data survives both restarts and redeploys.
+**Serverless SQLite via Turso:** The backend keeps SQLite's zero-friction query model but stores data in Turso (libSQL) so it persists independently of the stateless Render instance. A thin `db.prepare().get/all/run` shim keeps the query code unchanged while running over the network. Locally it falls back to a plain `.db` file, so `npm run dev` needs no credentials.
 
 **JWT in localStorage:** The `api.ts` wrapper injects the token on every request and redirects to `/login` on any 401, keeping auth logic in one place.
 

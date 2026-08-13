@@ -1,10 +1,29 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 
 const { initDb, prepare } = require('./db/database');
 
+// Fail fast if deployed without a real JWT secret — otherwise tokens could be
+// forged using the well-known dev fallback.
+if (process.env.NODE_ENV === 'production') {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret === 'weekfive-dev-secret') {
+    console.error('FATAL: JWT_SECRET must be set to a strong value in production.');
+    process.exit(1);
+  }
+}
+
 const app = express();
 const PORT = process.env.PORT || 5001;
+
+// Trust the single reverse proxy in front of the app (Render) so rate limiting
+// and req.ip see the real client address, not the proxy's.
+app.set('trust proxy', 1);
+
+// Security headers. This is a JSON API (no HTML), so the default CSP is not needed.
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(cors({
   origin: (origin, cb) => {
@@ -21,6 +40,17 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+
+// Throttle auth endpoints to slow down brute-force / credential-stuffing.
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,                  // per IP, per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many attempts. Please try again in a few minutes.' },
+});
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Routes
 app.use('/api/auth',          require('./routes/auth'));

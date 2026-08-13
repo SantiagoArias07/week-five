@@ -83,6 +83,9 @@ const register = async (req, res) => {
 
   await db.prepare('INSERT INTO user_settings (user_id) VALUES (?)').run(userId);
 
+  // Populate the new account with realistic demo data so it looks alive on first login.
+  await seedUserData(userId, name.trim());
+
   const user = await db.prepare('SELECT id, name, email FROM users WHERE id = ?').get(userId);
   res.status(201).json({ token: signToken(userId, user.email), user: formatUser(user) });
 };
