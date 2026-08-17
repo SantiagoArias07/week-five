@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Moon, Sun, Bell, Globe, Shield, Trash2,
-  LucideIcon, Check, X, LogOut, KeyRound, Volume2,
+  LucideIcon, Check, X, LogOut, LogIn, KeyRound, Volume2,
   Mail, BellOff,
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -63,7 +63,7 @@ function Section({ label }: { label: string }) {
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function Settings() {
   const navigate = useNavigate();
-  const { user, logout, setUser } = useAuthStore();
+  const { user, logout, setUser, isGuest } = useAuthStore();
   const { darkMode, setDarkMode, language, setLanguage } = useUIStore();
   const t = useT();
 
@@ -190,7 +190,38 @@ export default function Settings() {
             </div>
           )}
 
-          {!editing ? (
+          {isGuest ? (
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+                <span className="text-xl font-bold text-white">WF</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-gray-900 dark:text-white">
+                  {language === 'es' ? 'Estás explorando como invitado' : "You're exploring as a guest"}
+                </p>
+                <p className="text-sm text-gray-400 dark:text-gray-500">
+                  {language === 'es'
+                    ? 'Inicia sesión para guardar tu progreso en tu propia cuenta.'
+                    : 'Sign in to keep your progress in your own account.'}
+                </p>
+              </div>
+              <div className="flex gap-2 flex-shrink-0">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors"
+                >
+                  <LogIn size={14} />
+                  {language === 'es' ? 'Iniciar sesión' : 'Sign in'}
+                </button>
+                <button
+                  onClick={() => navigate('/register')}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-600 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  {language === 'es' ? 'Crear cuenta' : 'Sign up'}
+                </button>
+              </div>
+            </div>
+          ) : !editing ? (
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
                 <span className="text-xl font-bold text-white">
@@ -261,7 +292,8 @@ export default function Settings() {
         </div>
       </section>
 
-      {/* ── Security ── */}
+      {/* ── Security ── (real accounts only; guest sandboxes have no password) */}
+      {!isGuest && (
       <section className="mb-6">
         <Section label={t('settings_security')} />
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 px-5">
@@ -329,6 +361,7 @@ export default function Settings() {
           )}
         </div>
       </section>
+      )}
 
       {/* ── Appearance ── */}
       <section className="mb-6">
@@ -459,6 +492,7 @@ export default function Settings() {
               </span>
             }
           />
+          {!isGuest && (
           <div className="py-4">
             {!confirmDelete ? (
               <div className="flex items-center justify-between">
@@ -499,6 +533,7 @@ export default function Settings() {
               </div>
             )}
           </div>
+          )}
         </div>
       </section>
 

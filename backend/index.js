@@ -52,6 +52,17 @@ const authLimiter = rateLimit({
 app.use('/api/auth/login', authLimiter);
 app.use('/api/auth/register', authLimiter);
 
+// Guest sessions each seed a full demo dataset, so cap creation per IP to keep
+// bots from bloating the DB. Generous enough for real visitors (one per browser).
+const guestLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30,                  // per IP, per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many guest sessions from this network. Please try again in a few minutes.' },
+});
+app.use('/api/auth/guest', guestLimiter);
+
 // Routes
 app.use('/api/auth',          require('./routes/auth'));
 app.use('/api/tasks',         require('./routes/tasks'));

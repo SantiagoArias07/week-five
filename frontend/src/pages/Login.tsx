@@ -113,6 +113,12 @@ export default function Login() {
             </Link>
           </p>
         </div>
+
+        <p className="text-center text-xs text-gray-400 mt-4">
+          <Link to="/" className="hover:text-gray-600 hover:underline">
+            ← Continue exploring as guest
+          </Link>
+        </p>
       </div>
     </div>
   );
