@@ -4,6 +4,8 @@
 
 **Live site →** [weekfive-tec.vercel.app](https://weekfive-tec.vercel.app)
 
+> **No sign-up needed** — the app opens straight into a fully-populated **guest workspace**. Explore everything instantly; sign in only if you want to keep your own account.
+
 ---
 
 ## Preview
@@ -38,9 +40,10 @@
 | **Exams** | Add exams with weight %, room, and topics; priority badge (High/Med/Low) based on weight × urgency; study plan generator creates planner prep sessions |
 | **Grades** | Log grades by subject with weight %; weighted GPA calculated automatically; letter grade (A–F) per subject |
 | **Study Mode** | 25-minute Pomodoro timer with 5-minute break; session counter; weekly study-hours bar chart per subject |
-| **Settings** | Dark mode toggle, language switch (EN/ES), profile name & email |
+| **Settings** | Dark mode toggle, language switch (EN/ES), profile name & email; guests get a "sign in / sign up" card instead |
 | **Notifications** | Auto-generated from upcoming tasks and exams; unread badge on bell icon |
 | **Search** | Global search across tasks, subjects, and exams from the top bar |
+| **Guest mode** | Visitors land in an isolated sandbox pre-seeded with realistic data — no login wall. Each guest is independent, so the demo can't be modified for others |
 
 ---
 
@@ -113,6 +116,8 @@ week-five/
 
 **JWT in localStorage:** The `api.ts` wrapper injects the token on every request and redirects to `/login` on any 401, keeping auth logic in one place.
 
+**Zero-friction guest onboarding:** On first load with no token, the app calls `POST /api/auth/guest`, which spins up a unique throwaway account seeded with a full demo dataset (subjects, tasks, exams, grades, planner). Each visitor gets an isolated sandbox — recruiters see a live app immediately without a login wall, and no one can vandalize the demo for the next visitor. A per-IP rate limit keeps bots from bloating the database.
+
 ---
 
 ## API Reference
@@ -122,6 +127,7 @@ All endpoints require `Authorization: Bearer <token>` (except `/api/auth/*`).
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/auth/register` | Create account |
+| POST | `/api/auth/guest` | Create an isolated guest session (seeded demo data) → returns JWT |
 | POST | `/api/auth/login` | Login → returns JWT |
 | GET / POST | `/api/tasks` | List / create tasks |
 | PUT / DELETE | `/api/tasks/:id` | Update / delete task |
